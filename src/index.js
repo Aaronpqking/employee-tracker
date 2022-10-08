@@ -27,9 +27,7 @@ function start() {
           "Add a new department",
           "Add a new role",
           "Add a new employee",
-  
-  ,
-  "Update employee roles",
+          "Update employee roles",
           
           "Exit"
         ]
@@ -75,4 +73,24 @@ function viewDepartments()
         start();
     }
     )
+}
+{
+  connection.query("SELECT * FROM roles", (err, res) => {
+      if (err) {
+          console.log("ya messed up");
+      };
+      console.table(res);
+      start();
+  }
+  )
+}
+{
+  connection.query("SELECT * FROM employees", (err, res) => {
+      if (err) {
+          console.log("ya messed up");
+      };
+      console.table(res);
+      start();
+  }
+  )
 }
