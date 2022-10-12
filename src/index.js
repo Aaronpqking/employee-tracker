@@ -192,7 +192,7 @@ function addEmployee() {
       ])
         .then(function (response) {
           const chosenDept = res.find(role => role.title === response.roleID);
-          const chosenEmp= res2.find(employee => employee.last_name + ", " + employee.first_name === response.managerID);
+          const chosenEmp = res2.find(employee => employee.last_name + ", " + employee.first_name === response.managerID);
 
           connection.query("INSERT INTO employee SET ?",
             {
@@ -204,23 +204,83 @@ function addEmployee() {
             function (err3, res3) {
               if (err3) throw err;
               // console.log("Employee added");
-               connection.query("SELECT * FROM employee", (err, res) => {
+              connection.query("SELECT * FROM employee", (err, res) => {
                 if (err) {
-                  console.log("ya messed up");
+                  console.log("try again");
                 };
-                 console.table(res);
-                 start();
+                console.table(res);
+                start();
 
               })
             });
         })
     })
-  
-
-
-
-    })
-      
-
-  
+  })
 }
+function updateEmp() {
+  connection.query("SELECT * FROM employee", function (err, res) {
+    if (err) throw err;
+  
+    inquirer.prompt([
+      {
+        name: "updateEmp",
+        type: 'list',
+        message: "Which employee would you like to update?",
+        choices: res.map(employee => employee.last_name + ", " + employee.first_name)
+
+      },
+    ])
+      .then(function (response) {
+        const chosenEmp = res.find(employee => employee.first_name + ", " + employee.last_name === response.employeeID);
+        inquirer.prompt([
+          {
+            name: "firstName",
+            type: 'input',
+            message: "Re-enter the employee's first name?",
+          },
+          {
+            name: "lastName",
+            type: 'input',
+            message: "Re-enter the employee's last name?"
+          },
+          {
+            name: "roleID",
+            type: "list",
+            message: "Reselect a department for this role",
+            choices: res.map(role => role.title)
+          },
+          {
+            name: "managerID",
+            type: "list",
+            message: "Select the employee's manager",
+            choices: res.map(employee => employee.last_name + ", " + employee.first_name)
+          }
+        ])
+          .then(function (response) {
+            const chosenDept = res2.find(role => role.title === response.roleID);
+            const chosenMan = res2.find(employee => employee.last_name + ", " + employee.first_name === response.managerID);
+      
+                
+            connection.query("UPDATE employee SET ? WHERE ID  ",
+              {
+                first_name: response.firstName,
+                last_name: response.lastName,
+                role_id: chosenDept.id,
+                manager_id: chosenMan.id
+              },
+              function (err2, res2) {
+                if (err2) throw err;
+                // console.log("Employee added");
+                //  connection.query("SELECT * FROM employee", (err, res) => {
+                //   if (err) {
+                //     console.log("ya messed up");
+                //   };
+                //    console.table(res);
+                start();
+  
+              })
+          });
+      })
+  }
+   ) } 
+   
