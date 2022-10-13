@@ -10,7 +10,7 @@ let connection = mysql.createConnection({
 });
 
 connection.connect(() => {
-    console.log("CONNECTED....HEAVILY");
+    console.log("CONNECTED");
     start();
 });
 
@@ -66,7 +66,7 @@ function viewDepartments()
 {
     connection.query("SELECT * FROM department", (err, res) => {
         if (err) {
-            console.log("ya messed up");
+            console.log("error, try again");
         };
         console.table(res);
         start();
@@ -78,7 +78,7 @@ function viewRoles()
   connection.query("SELECT * FROM role", (err, res) => {
     
       if (err) {
-          console.log("ya messed up");
+          console.log("error, try again");
       };
       console.table(res);
       start();
@@ -89,7 +89,7 @@ function viewEmployees()
 {
   connection.query("SELECT * FROM employee", (err, res) => {
       if (err) {
-          console.log("ya messed up");
+          console.log("error, try again");
       };
       console.table(res);
       start();
@@ -110,7 +110,8 @@ connection.query("INSERT INTO department SET ?",
         },
         function (err, res) {
           if (err) throw err;
-          console.log("department added");
+          console.log("department added")
+          console.table(res);
           start();
         }
       );
@@ -149,7 +150,8 @@ function addRole() {
           },
           function (err, res) {
             if (err) throw err;
-            console.log("role added");
+            console.log("role added")
+            console.table(res);
             start();
           }
         );
@@ -160,10 +162,10 @@ function addRole() {
 }
 
 function addEmployee() {
-  connection.query("SELECT * FROM Role", function (err, res) {
+  const roleArray = connection.query("SELECT * FROM Role", function (err, res) {
     if (err) throw err;
 
-    connection.query("SELECT * FROM employee", function (err2, res2) {
+    const managerArray = connection.query("SELECT * FROM employee", function (err2, res2) {
       if (err2) throw err;
 
       inquirer.prompt([
@@ -192,7 +194,7 @@ function addEmployee() {
       ])
         .then(function (response) {
           const chosenDept = res.find(role => role.title === response.roleID);
-          const chosenEmp= res2.find(employee => employee.last_name + ", " + employee.first_name === response.managerID);
+          const chosenEmp = res2.find(employee => employee.last_name + ", " + employee.first_name === response.managerID);
 
           connection.query("INSERT INTO employee SET ?",
             {
@@ -203,24 +205,65 @@ function addEmployee() {
             },
             function (err3, res3) {
               if (err3) throw err;
-              // console.log("Employee added");
-               connection.query("SELECT * FROM employee", (err, res) => {
+              console.log("Employee added");
+              connection.query("SELECT * FROM employee", (err, res) => {
                 if (err) {
-                  console.log("ya messed up");
+                  console.log("error, try again");
                 };
-                 console.table(res);
-                 start();
+                console.log("employee added")
+                console.table(res);
+                start();
 
               })
             });
         })
     })
-  
-
-
-
-    })
-      
-
-  
+  })
 }
+
+
+function updateEmp() {
+    connection.query("SELECT * FROM employee", function (err, res) {
+        if (err) throw err;
+      
+         connection.query("SELECT * FROM role", function (err2, res2) {
+            if (err2) throw err;
+            
+                inquirer.prompt([
+                    {
+                        name: "updateEmp",
+                        type: 'list',
+                        message: "Which employee would you like to update?",
+                        choices: res.map(employee => employee.first_name + " " + employee.last_name)
+
+                    },
+                ])
+                  .then(function (response) {
+                    
+                    const chosenEmp = res.find(employee => employee.first_name + " " + employee.last_name === response.updateEmp);
+                    console.log(chosenEmp)
+                    inquirer.prompt([
+                      {
+                        name: "roleID",
+                        type: "list",
+                        message: "Reselect a department for this role",
+                        choices: res2.map(role => role.title)
+                      }])
+                      .then(function (response) {
+                        console.log(response)
+                        const chosenDept = res2.find(role => role.title === response.roleID);
+                        connection.query("UPDATE employee SET ? WHERE id=" + chosenEmp.id,
+                          { role_id : chosenDept.id },
+                          function (err, res) {
+                            if (err) throw err;
+                            console.log(res)
+                            viewEmployees();
+                          })
+                      
+                      })
+                    })
+            })
+        })
+    }
+ 
+
